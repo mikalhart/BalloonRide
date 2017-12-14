@@ -39,7 +39,7 @@ void setup()
 
   // Greeting
   log("BalloonRide " VERSION "\r\n");
-  log("Copyright (C) 2015-7 International Circumnavigation Balloon Consortium\r\n");
+  log("Copyright (C) 2015-7 International Circumnavigating Balloon Consortium\r\n");
   log("Onwards and Upwards and Around the World!\r\n");
   log("\r\n");
   showCommands();

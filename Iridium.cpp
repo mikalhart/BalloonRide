@@ -26,7 +26,7 @@ static bool txrx(const char *buf, const char *txtype, ACK_TYPE *pat);
 void startIridium()
 {
   log("Setting up satmodem...");
-  displayText("Conf satmodem...");
+  displayText("Conf satmodem..");
   // First, start the serial port attached to the RockBLOCK
   modem.setPowerProfile(IridiumSBD::USB_POWER_PROFILE);
   iridium.begin(rockBLOCKBaud);
@@ -37,9 +37,7 @@ void startIridium()
   if (err != ISBD_SUCCESS)
   {
     log("modem.begin fail: %d\r\n", err);
-    displayText("\r\nmodem.begin fail: ");
-    displayText(err);
-    displayText("\r\n");
+    displayText("fail");
     fatal(BALLOON_ERR_IRIDIUM_INIT);
   }
   log("done.\r\n");
@@ -70,7 +68,7 @@ void processIridium()
     {
       snprintf(info.transmitBuffer1, sizeof(info.transmitBuffer1),
                "%d:%02d%02d%02d,%.6f,%.6f,%ld,%.2f,%.2f",
-               info.rxMessageNumber, ginf.hour, ginf.minute, ginf.second,
+               info.rxMessageNumber % 100, ginf.hour, ginf.minute, ginf.second,
                ginf.latitude, ginf.longitude, ginf.altitude, binf.batteryVoltage,
                tinf.temperature[0]);
     }
@@ -151,7 +149,6 @@ static bool decideToTransmitPrimary()
   if (ginf.fixAcquired)
   {
     // Ground altitude is the first thing we record
-    log("sats and ginfalt and groundalt are %d %ld %ld\r\n", ginf.satellites, ginf.altitude, bal_info.groundAltitude);
     if (ginf.satellites >= 5 && bal_info.groundAltitude == INVALID_ALTITUDE)
       bal_info.groundAltitude = ginf.altitude;
 

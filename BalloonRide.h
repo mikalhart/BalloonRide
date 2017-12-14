@@ -8,26 +8,27 @@
 typedef usb_serial_class ConsoleType;
 typedef const __FlashStringHelper *FlashString;
 
-// Port mappings
-#define ConsoleSerial Serial
-#define GPSSerial Serial2
-#define IridiumSerial Serial3
-
 // Constants
 static const unsigned long gpsBaud = 9600UL;
 static const unsigned long rockBLOCKBaud = 19200UL;
 static const unsigned long consoleBaud = 115200UL;
 static const int THERMAL_PROBES = 2;
-#define VERSION "6.00"
+#define VERSION "6.21"
 static const double INVALID_VOLTAGE = -1000.0;
 static const double INVALID_TEMPERATURE = -1000.0;
 static const long INVALID_ALTITUDE = -20000L;
 static const double INVALID_LATLONG = -1000.0;
 typedef enum { LOG_IRIDIUM = 1, LOG_TELEMETRY = 2, LOG_RUNLOG = 4 } LOGTYPE;
 
-// Pin assignments
-// GPS connected to Serial2 (pins 9 and 10)
-// RockBLOCK connected to Serial3 (pins 7 and 8)
+// Port mappings and pin assigments
+// Serial2 is RX=9, TX=10
+// Serial3 is RX=7, TX=8
+#define OLD false
+
+#if OLD
+#define ConsoleSerial Serial 
+#define GPSSerial Serial2
+#define IridiumSerial Serial3
 static const int ledPin = 13;
 static const int gpsFixPin = -1;
 static const int gpsPPSPin = -1;
@@ -38,6 +39,24 @@ static const int rockBLOCKRingPin = 5;
 static const int gpsPowerPin = -1;
 static const int ds18B20pin0 = 11;
 static const int ds18B20pin1 = 12;
+#else
+#define ConsoleSerial Serial
+#define GPSSerial Serial3
+#define IridiumSerial Serial2
+static const int ledPin = 13;
+static const int gpsFixPin = 2;
+static const int gpsPPSPin = 4;
+static const int gpsBackupBatteryVoltagePin = -1;
+static const int mainBatteryVoltagePin = A9;
+static const int rockBLOCKSleepPin = 12;
+static const int rockBLOCKRingPin = 11;
+static const int gpsPowerPin = 3;
+static const int ds18B20pin0 = 28;
+static const int ds18B20pin1 = 30;
+#endif
+// Pin assignments
+// GPS connected to Serial2 (pins 9 and 10) (PCB is Serial3 -- pins 7 and 8)
+// RockBLOCK connected to Serial3 (pins 7 and 8) (PCB is Serial2 -- pins 9 and 10)
 
 // Error "blink" codes
 static const int BALLOON_ERR_IRIDIUM_INIT = 2;

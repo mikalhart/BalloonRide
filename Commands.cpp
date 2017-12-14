@@ -14,7 +14,7 @@ void showCommands()
   log(F("\r\n"));
   log(F("Remote commands:\r\n"));
   log(F("\r\n"));
-  log(F("  B              Burst/disengage\r\n"));
+  log(F("  B[xxx]         Burst/disengage for specified seconds\r\n"));
   log(F("  Axxx           Ascend to specific altitude (m)\r\n"));
   log(F("  Dxxx           Descend to specific altitude (m)\r\n"));
   log(F("  P              Request Primary info packet immediately\r\n"));
@@ -28,6 +28,12 @@ void showCommands()
 static void Burst(char *p)
 {
   log(F("Processing Burst command %s\r\n"), p);
+  int parameter = 0;
+  if (strlen(p) >= 2)
+  {
+    parameter = (int)strtoul(p + 1, NULL, 10);
+  }
+  
   // TODO
 }
 
