@@ -13,7 +13,10 @@ static const unsigned long gpsBaud = 9600UL;
 static const unsigned long rockBLOCKBaud = 19200UL;
 static const unsigned long consoleBaud = 115200UL;
 static const int THERMAL_PROBES = 2;
-#define VERSION "6.21"
+#define PROGRAMNAME "BalloonRide"
+#define VERSION "6.22"
+#define COPYRIGHT "Copyright (C) 2015-8 International Circumnavigating Balloon Consortium"
+#define SMALLCOPYRIGHT "(C) 2015-8 ICBC"
 static const double INVALID_VOLTAGE = -1000.0;
 static const double INVALID_TEMPERATURE = -1000.0;
 static const long INVALID_ALTITUDE = -20000L;
@@ -142,6 +145,7 @@ extern const BatteryInfo &getBatteryInfo();
 extern bool executeConsoleCommand(char *cmd);
 extern bool executeRemoteCommand(char *cmd);
 extern void showCommands();
+extern void RunScheduler();
 
 /* Console */
 extern void startConsole();

@@ -14,21 +14,21 @@ void showCommands()
   log(F("\r\n"));
   log(F("Remote commands:\r\n"));
   log(F("\r\n"));
-  log(F("Syntax is [ddd]C[xxx[,yyy]] where\r\n"));
+  log(F("Syntax is dddCxxx,yyy where\r\n"));
   log(F("    ddd is an optional deferral in minutes (default=0)\r\n"));
   log(F("    C is the command to execute\r\n"));
-  log(F("    xxx and yyy are arguments\r\n"));
+  log(F("    xxx is arg1\r\n"));
+  log(F("    yyy is arg2\r\n"));
   log(F("\r\n"));
-  log(F(" CMD  Name                 Arguments\r\n"));
-  log(F(" ---  -------------------- --------------------------\r\n"));
-  log(F("  B   request Burst        duration(s) (opt, def=10s)\r\n"));
-  log(F("  A   set target Altitude  target(m)   (opt, def=none)\r\n"));
-  log(F("  M   execute Macro        macro#\r\n"));
-  log(F("  P   take Picture         repeat interval(s) (opt, def=none, 0=stop)\r\n"));
-  log(F("  V   take Video           duration(mins) (opt, def=infinite, 0=stop)\r\n"));
+  log(F(" CMD  Name                 Arg1                       Arg2\r\n"));
+  log(F(" ---  -------------------- -------------------------- ----------------\r\n"));
+  log(F("  B   request Burst        dur(s) (opt, def=10)       N/A\r\n"));
+  log(F("  A   set target Altitude  target(m) (opt, def=none)  N/A\r\n"));
+  log(F("  M   execute Macro        macro#    N/A              N/A\r\n"));
+  log(F("  P   take Picture         repeat interval(min) (opt, def=none)\r\n"));
+  log(F("  V   take Video           dur(s)    infinite         N/A\r\n"));
   log(F("  I   request Info packet  0=Primary, 1=Secondary\r\n"));
-  log(F("  C   change Cadence       Arg1: 0=Gnd, 1=Flt, 2=Lnd, 3=sec\r\n"));
-  log(F("                           Arg2: interval (min)\r\n"));
+  log(F("  C   change Cadence       0=Gnd, 1=Flt, 2=Lnd, 3=sec interval (min)\r\n"));
   log(F("\r\n"));
 }
 
@@ -45,25 +45,31 @@ static void BurstEnd()
   /* TODO */
 }
 
-static void MaintainAltitude(long target, long current)
+static void MaintainAltitude(unsigned long target, unsigned long current)
 {
-  log(F("Maintain Altitude target = %ld, current = %ld\r\n"), target, current);
+  log(F("Maintain Altitude target = %lu, current = %lu\r\n"), target, current);
   /* TODO */
 }
 
-static void TakePicture()
+static void StartPicture()
 {
-  log(F("Take Picture\r\n"));
+  log(F("Start Picture\r\n"));
   /* TODO */
 }
 
-static void VideoStart()
+static void EndPicture()
+{
+  log(F("End Picture\r\n"));
+  /* TODO */
+}
+
+static void StartVideo()
 {
   log(F("Start Video\r\n"));
   /* TODO */
 }
 
-static void VideoEnd()
+static void EndVideo()
 {
   log(F("End Video\r\n"));
   /* TODO */
@@ -77,109 +83,112 @@ static void Macro(int n)
 
 /* End These are functions hardware designers should implement */
 
-enum { STARTBURST, ENDBURST, TAKEPICTURE, STARTVIDEO, ENDVIDEO, MACRO };
+enum { BURSTSTART, BURSTEND, PICTURESTART, PICTUREEND, VIDEOSTART, VIDEOEND, MACRO };
 struct SCHEDULEINFO
 {
-  unsigned long timestamp;
+  time_t timestamp;
   int command;
-  unsigned long arg;
+  unsigned long arg1;
+  unsigned long arg2;
 };
 
 #define TABLESIZE 8
 struct SCHEDULEINFO events[TABLESIZE];
 static const unsigned long ULONG_MAX = 0xFFFFFFFF;
-static const unsigned long LONG_MAX = 0x7FFFFFFF;
 static unsigned long target_altitude = ULONG_MAX;
-
-void RunScheduler()
+void FeedScheduler()
 {
-  unsigned long now = millis();
+  if (target_altitude != ULONG_MAX)
+    MaintainAltitude(target_altitude, getGPSInfo().altitude);
+ 
+}
+
+static void AddToScheduler(time_t timestamp, int command, unsigned long arg1, unsigned long arg2)
+{
+  int open = -1;
   for (int i=0; i<TABLESIZE; ++i)
   {
-    // Event in the past?
-    if (events[i].timestamp != 0 && now - events[i].timestamp < LONG_MAX)
+    if (open == -1 && events[i].timestamp == 0)
+      open = i;
+    if (events[i].command == command)
     {
-      switch(events[i].command)
-      {
-        case STARTBURST:
-          BurstStart(); break;
-        case ENDBURST:
-          BurstEnd(); break;
-        case TAKEPICTURE:
-          TakePicture(); break;
-        case STARTVIDEO:
-          VideoStart(); break;
-        case ENDVIDEO:
-          VideoEnd(); break;
-        case MACRO:
-          Macro(events[i].arg); break;
-      }
-
-      // Recurring pictures
-      if (events[i].command == TAKEPICTURE && events[i].arg != ULONG_MAX)
-        events[i].timestamp += 1000UL * events[i].arg;
-      else
-        events[i].timestamp = 0;
+      open = i;
+      break;
     }
+  }
+
+  events[open].timestamp = timestamp;
+  events[open].command = command;
+  events[open].arg1 = arg1;
+  events[open].arg2 = arg2;
+}
+
+#if false
+static void ParseBurst(char *p)
+{
+  log(F("Processing Burst command %s\r\n"), p);
+  int parameter = 0;
+  if (strlen(p) >= 2)
+  {
+    parameter = (int)strtoul(p + 1, NULL, 10);
   }
   
-  if (target_altitude != ULONG_MAX)
-  {
-    const GPSInfo &gpsinf = getGPSInfo();
-    if (gpsinf.fixAcquired)
-      MaintainAltitude(target_altitude, gpsinf.altitude);
-  }
+  // TODO
 }
 
-static void AddToScheduler(unsigned long timestamp, int command, unsigned long arg)
+
+static void ParseAltitude(char *p)
 {
-  int found = -1;
-  for (int i=0; i<TABLESIZE; ++i)
+  log(F("Processing Altitude command %s\r\n"), p);
+  // TODO
+}
+
+static void Descend(char *p)
+{
+  log(F("Processing Descend command %s\r\n"), p);
+  // TODO
+}
+
+/*
+ * Commands to change the cadence at which primary or secondary info packets are transmitted from the balloon to the ground
+ */
+
+static void Cadence(char *p)
+{
+  log(F("Processing Cadence command %s\r\n"), p);
+  if (strlen(p) >= 3)
   {
-    if (found == -1 && events[i].timestamp == 0)
-      found = i;
-    if (events[i].command == command)
+    uint16_t interval = (uint16_t)strtoul(p + 2, NULL, 10);
+    switch(p[1])
     {
-      found = i;
-      break;
+      case 'G':
+        setGroundInterval(interval);
+        break;
+      case 'F':
+        setFlightInterval(interval);
+        break;
+      case 'L':
+        setPostLandingInterval(interval);
+        break;
+      case 'S':
+        setSecondaryInterval(interval);
+        break;
     }
   }
-
-  if (found != -1)
-  {
-    log("Found open scheduler slot at %d\r\n", found);
-    events[found].timestamp = timestamp;
-    events[found].command = command;
-    events[found].arg = arg;
-  }
 }
 
-static void RemoveFromScheduler(int command)
+static void Image(char *p)
 {
-  for (int i=0; i<TABLESIZE; ++i)
-    if (events[i].command == command)
-      events[i].timestamp = 0;
+  log(F("Processing Image command %s\r\n"), p);
+  // TODO
 }
 
-static void Cadence(unsigned long arg1, unsigned long arg2)
+static void Video(char *p)
 {
-  log(F("Processing Cadence command %lu %lu\r\n"), arg1, arg2);
-  switch(arg1)
-  {
-    case 0:
-      setGroundInterval(arg2);
-      break;
-    case 1:
-      setFlightInterval(arg2);
-      break;
-    case 2:
-      setPostLandingInterval(arg2);
-      break;
-    case 3:
-      setSecondaryInterval(arg2);
-      break;
-  }
+  log(F("Processing Video command %s\r\n"), p);
+  // TODO
 }
+#endif
 
 /*
  * Handle commands arriving from the serial console (watch/type)
@@ -234,13 +243,9 @@ bool executeConsoleCommand(char *cmd)
       errortok = tok2;
   }
 
-  else
-  {
-    errortok = tok1;
-  }
-
   if (errortok)
   {
+    log(F("Unknown console command: '%s'. Trying remote.\r\n"), errortok);
     return executeRemoteCommand(tok1);
   }
 
@@ -252,7 +257,6 @@ bool executeConsoleCommand(char *cmd)
 
 bool executeRemoteCommand(char *cmd)
 {
-  log("Executing remote command %s\r\n", cmd);
   char cpy[sizeof(IridiumInfo::receiveBuffer)];
   strncpy(cpy, cmd, sizeof(cpy));
   char *errortok = NULL;
@@ -280,46 +284,31 @@ bool executeRemoteCommand(char *cmd)
       arg2 = (unsigned)strtoul(tok, &tok, 10);
     }
 
-    unsigned long exectime = millis();
+    time_t exectime = getGPSTime();
+    if (exectime == (time_t)-1)
+      return false;
 
-    exectime += 60000UL * defer;
+    exectime += defer;
 
-    log("Processing %c command\r\n", command);
-    log("Defer = %lu\r\n", defer);
-    log("Arg1 = %lu\r\n", arg1);
-    log("Arg2 = %lu\r\n", arg2);
-    log("Time = %lu\r\n", millis());
-    log("ExecTime = %ld\r\n", exectime);
-    
     switch(command)
     {
       case 'B':
-        AddToScheduler(exectime, STARTBURST, 0);
-        AddToScheduler(exectime + 1000UL * (arg1 == ULONG_MAX ? 10 : arg1), ENDBURST, 0);
+        AddToScheduler(exectime, BURSTSTART, 0, 0);
+        AddToScheduler(exectime + (arg1 == ULONG_MAX ? 10 : arg1), BURSTEND, 0, 0);
         break;
       case 'A':
-        target_altitude = arg1 == ULONG_MAX ? ULONG_MAX : arg1;
+        target_altitude = arg1;
         break;
       case 'M':
-        AddToScheduler(exectime, MACRO, arg1);
+        AddToScheduler(exectime, MACRO, arg1, 0);
         break;
       case 'P':
-        if (arg1 == 0) // 0 means stop taking pictures
-          RemoveFromScheduler(TAKEPICTURE);
-        else
-          AddToScheduler(exectime, TAKEPICTURE, arg1);
+        log(F("Processing Primary command %s\r\n"), tok);
+        requestPrimaryInfo();
         break;
       case 'V':
-        if (arg1 == 0) // 0 means stop taking video
-        {
-          AddToScheduler(exectime, ENDVIDEO, 0);
-        }
-        else
-        {
-          AddToScheduler(exectime, STARTVIDEO, 0);
-          if (arg1 != ULONG_MAX) // no parameter means record forever
-            AddToScheduler(exectime + 60000UL * arg1, ENDVIDEO, 0);
-        }
+        log(F("Processing Secondary command %s\r\n"), tok);
+        requestSecondaryInfo();
         break;
       case 'I':
         if (arg1 == 1)
@@ -328,7 +317,7 @@ bool executeRemoteCommand(char *cmd)
           requestPrimaryInfo();
         break;
       case 'C':
-        Cadence(arg1, arg2);
+        Cadence(tok);
         break;
       default:
         log(F("Unknown command '%s'\r\n"), tok);

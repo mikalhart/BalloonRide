@@ -85,7 +85,9 @@ static void readProbeData()
   
     ds[i].reset_search();
     
-    info.temperature[i] = (double)((data[1] << 8) | data[0]) / 16.0;
+    // info.temperature[i] = (double)((data[1] << 8) | data[0]) / 16.0;
+    int16_t w = (data[1] << 8) | data[0];
+    info.temperature[i] = (double)w / 16.0;
   }
 }
 

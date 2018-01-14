@@ -38,8 +38,8 @@ void setup()
   startConsole();
 
   // Greeting
-  log("BalloonRide " VERSION "\r\n");
-  log("Copyright (C) 2015-7 International Circumnavigating Balloon Consortium\r\n");
+  log(PROGRAMNAME " " VERSION "\r\n");
+  log(COPYRIGHT "\r\n");
   log("Onwards and Upwards and Around the World!\r\n");
   log("\r\n");
   showCommands();
@@ -77,6 +77,7 @@ void loop()
   processLED();
   processDisplay();
   processConsole();
+  RunScheduler();
 }
 
 // Recursively call loop during lengthy Iridium operations!

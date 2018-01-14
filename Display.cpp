@@ -117,8 +117,8 @@ void startDisplay()
   display.setTextColor(WHITE);
   display.display();
   display.setCursor(0, 0);
-  display.println("BalloonRide 6.00");
-  display.println("(C) 2015-7 ICBC");
+  display.println(PROGRAMNAME " " VERSION);
+  display.println(SMALLCOPYRIGHT);
   display.display();
   delay(2000); // allow display message to sink in
   display.clearDisplay();
@@ -192,10 +192,10 @@ void processDisplay()
     }
     else
     {
-      minute = (unsigned)((age % 3600) / 60);
+      minute = (unsigned)(age / 60);
       second = (unsigned)(age % 60);
       display.print(minute < 10 ? "0" : "");
-      display.print(minute > 99 ? 99 : minute);
+      display.print(minute > 999 ? 999 : minute);
       display.print(":");
       display.print(second < 10 ? "0" : "");
       display.print(second);
@@ -240,7 +240,7 @@ void processDisplay()
       display.print(getGPSInfo().altitude);
       display.print("m ");
     }
-    display.print("ET: ");
+    display.print("ET:");
     if (getThermalInfo().temperature[1] >= 0)
       display.print(" ");
     if (getThermalInfo().temperature[1] == INVALID_TEMPERATURE)
@@ -265,6 +265,7 @@ void processDisplay()
     display.print(getIridiumInfo().count);
     display.print(" IT:");
     display.print(getThermalInfo().temperature[0], 1);
+    display.print("C");
     display.display();
   }
 }

@@ -1,0 +1,50 @@
+Todo
+
+Macros (M command)
+*Event Queue
+Sleep Snooze library
+Solar panels
+SDFat timestamping
+**Fix thermo code for negative temperatures
+*Code 3 Iridium problem
+"Ring was asserted" problem
+Gen 3 RockBlock
+
+Commands thinking
+Control has target altitude and command queue
+User Functions: BurstStart, BurstEnd, AltitudeUp, AltitudeDown, AltitudeSteady, TakePicture, StartVideo, StopVideo, Macro(n)
+
+Command Functions: Queue(time, command, arg1, arg2), 
+Burst(start=now, end=10 seconds)
+Altitude(start=now, alt/stop)
+Picture(start=now, interval=0)
+Video(start=now, length=0)
+Info(Primary/Secondary)
+Cadence(Ground/Flight/Landing/Secondary, interval)
+
+[future]B[dur-secs=10]
+[future]Atarget-meters
+[future]Mn
+In (0=primary, 1=secondary)
+Cm,n (0=ground, 1=flight, 2=landing, 3=secondary), seconds
+[future]Pint-secs
+[future]Vdur-mins
+
+Wiring changes:
+OLED power and GPS power controlled by CPU
+RTC clock hooked to battery
+
+Loop design
+Process GPS: (turn on GPS, gather until done, turn off GPS)
+Gather thermal data
+Gather battery data
+Write to logs
+if (!recursive) Process iridium (turn on iridium, send/receive as needed, calling loop recursively, turn off iridium)
+Process LED: (On every odd interval, off during flight)
+Process Display: (Off during flight)
+Process Console
+if (!recursive) Sleep for 10 seconds
+
+Event Queue
+<timestamp> Command (BurstStart, BurstEnd, AltitudeCheck, )
+

@@ -32,7 +32,7 @@ void startIridium()
   iridium.begin(rockBLOCKBaud);
 
   // ... and then the RockBLOCK itself
-  modem.adjustATTimeout(40);
+  modem.adjustATTimeout(90);
   int err = modem.begin();
   if (err != ISBD_SUCCESS)
   {
@@ -258,6 +258,22 @@ static bool txrx(const char *buffer, const char *txtype, ACK_TYPE *pat)
   log(F("*****************************************\r\n"));
   log(F("Attempting RockBLOCK %s transmission..\r\n%s\r\n"), txtype, buffer);
   log(F("*****************************************\r\n"));
+
+  /* New */
+  if (modem.isAsleep())
+  {
+    log(F("Waking modem.\r\n"));
+    int err = modem.begin();
+    if (err != ISBD_SUCCESS)
+    {
+      log("modem.begin fail: %d\r\n", err);
+      displayText("fail");
+      fatal(BALLOON_ERR_IRIDIUM_INIT);
+    }
+  }
+  
+  /* New */
+  
   info.isTransmitting = true;
   int code = modem.sendReceiveSBDText(buffer, reinterpret_cast<uint8_t *>(info.receiveBuffer), rxBufSize);
   info.isTransmitting = false;
@@ -274,6 +290,17 @@ static bool txrx(const char *buffer, const char *txtype, ACK_TYPE *pat)
       return true;
     }
     *pat = NONE;
+  
+    /* New */
+    int err = modem.sleep();
+    if (err != ISBD_SUCCESS)
+    {
+      log("modem.sleep fail: %d\r\n", err);
+      displayText("fail");
+      fatal(BALLOON_ERR_IRIDIUM_INIT);
+    }
+    
+    /* New */
     return true;
   }
   else
