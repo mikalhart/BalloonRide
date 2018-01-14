@@ -32,51 +32,6 @@ void showCommands()
   log(F("\r\n"));
 }
 
-/* These are functions hardware designers should implement */
-static void BurstStart()
-{
-  log(F("Burst Start\r\n"));
-  /* TODO */
-}
-
-static void BurstEnd()
-{
-  log(F("Burst End\r\n"));
-  /* TODO */
-}
-
-static void MaintainAltitude(long target, long current)
-{
-  log(F("Maintain Altitude target = %ld, current = %ld\r\n"), target, current);
-  /* TODO */
-}
-
-static void TakePicture()
-{
-  log(F("Take Picture\r\n"));
-  /* TODO */
-}
-
-static void VideoStart()
-{
-  log(F("Start Video\r\n"));
-  /* TODO */
-}
-
-static void VideoEnd()
-{
-  log(F("End Video\r\n"));
-  /* TODO */
-}
-
-static void Macro(int n)
-{
-  log(F("Macro %d\r\n"), n);
-  /* TODO */
-}
-
-/* End These are functions hardware designers should implement */
-
 enum { STARTBURST, ENDBURST, TAKEPICTURE, STARTVIDEO, ENDVIDEO, MACRO };
 struct SCHEDULEINFO
 {

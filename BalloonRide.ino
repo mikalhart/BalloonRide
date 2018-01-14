@@ -61,6 +61,9 @@ void setup()
 
   // Battery
   startBatteryMonitor();
+
+  // Andrew
+  AndrewsStartup();
   
   // All done with initialization!
   setupComplete = true;

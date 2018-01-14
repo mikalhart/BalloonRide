@@ -14,7 +14,7 @@ static const unsigned long rockBLOCKBaud = 19200UL;
 static const unsigned long consoleBaud = 115200UL;
 static const int THERMAL_PROBES = 2;
 #define PROGRAMNAME "BalloonRide"
-#define VERSION "6.22"
+#define VERSION "6.23"
 #define COPYRIGHT "Copyright (C) 2015-8 International Circumnavigating Balloon Consortium"
 #define SMALLCOPYRIGHT "(C) 2015-8 ICBC"
 static const double INVALID_VOLTAGE = -1000.0;
@@ -135,7 +135,18 @@ struct BatteryInfo
    double gpsBackupBatteryVoltage;
 };
 
-// prototypes
+// Function prototypes
+
+/* Andrew */
+extern void AndrewsStartup();
+extern void BurstStart();
+extern void BurstEnd();
+extern void MaintainAltitude(long target, long current);
+extern void TakePicture();
+extern void VideoStart();
+extern void VideoEnd();
+extern void Macro(int n);
+
 /* Battery */
 extern void startBatteryMonitor();
 extern void processBatteryData();
