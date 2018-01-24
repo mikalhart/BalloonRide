@@ -98,6 +98,7 @@ void processIridium()
     }
   }
 
+#if false // decided 1/18 not to send confusing ACK messages
   // Do we need to transmit an acknowledgement of received data?
   while (ackType != NONE)
   {
@@ -106,6 +107,7 @@ void processIridium()
     snprintf(buf, sizeof(buf), "%s:%s", prefix, info.receiveBuffer);
     while (!txrx(buf, ackType == ACK ? "ACK Acknowledgement" : "NAK Acknowledgement", &ackType));
   }
+#endif
 }
 
 const IridiumInfo &getIridiumInfo()
@@ -134,7 +136,6 @@ static bool decideToTransmitPrimary()
   unsigned long now = millis();
   unsigned long secsSinceLastXmit = (now - info.xmitTime1) / 1000;
 
-  bal_info.inFlight = false;
   bal_info.isDescending = false;
 
   bool mustTransmit = false;
@@ -161,11 +162,22 @@ static bool decideToTransmitPrimary()
       // ... and whether the balloon has moved significantly since the last transmission
       bal_info.lateralTravel = TinyGPSPlus::distanceBetween(ginf.latitude, ginf.longitude, info.lat, info.lng);
       bal_info.verticalTravel = abs(info.alt - ginf.altitude);
-      bal_info.inFlight = bal_info.lateralTravel > 1000.0 || bal_info.verticalTravel > 100UL;
+
+      // If it's moved since the most recent transmission, it's in flight
+      if (bal_info.lateralTravel > 1000.0 || bal_info.verticalTravel > 100UL)
+      {
+        bal_info.flightState = BalloonInfo::INFLIGHT;
+        bal_info.hasEverFlown = true;
+      }
+      // if it hasn't, it's either still on the ground or landed
+      else if (secsSinceLastXmit > 10 && bal_info.hasEverFlown)
+      {
+        bal_info.flightState = BalloonInfo::LANDED;
+      }
     }
 
     // ... and whether the balloon is descending
-    bal_info.isDescending = bal_info.inFlight && ginf.altitude < info.alt;
+    bal_info.isDescending = bal_info.flightState == BalloonInfo::INFLIGHT && ginf.altitude < info.alt;
   }
 
   // Here are the cases when we should transmit a message on the sat modem:
@@ -191,7 +203,7 @@ static bool decideToTransmitPrimary()
   }
 
   // 4. If the balloon is in flight and it's been more than FLIGHT_INTERVAL...
-  else if (bal_info.inFlight && secsSinceLastXmit >= info.FLIGHT_INTERVAL * 60UL) // time in seconds
+  else if (bal_info.flightState == BalloonInfo::INFLIGHT && secsSinceLastXmit >= info.FLIGHT_INTERVAL * 60UL) // time in seconds
   {
     log(F("Balloon in flight: transmitting on %d-minute cadence.\r\n"), info.FLIGHT_INTERVAL);
     mustTransmit = true;
@@ -207,7 +219,7 @@ static bool decideToTransmitPrimary()
   }
 
   // 5. If already landed and it's been a long since the last transmission, transmit even though the balloon isn't moving.
-  else if (secsSinceLastXmit >= info.POST_LANDING_INTERVAL * 60UL)
+  else if (bal_info.flightState == BalloonInfo::LANDED && secsSinceLastXmit >= info.POST_LANDING_INTERVAL * 60UL)
   {
     log(F("It's been %d minutes: time to transmit.\r\n"), info.POST_LANDING_INTERVAL);
     mustTransmit = true;
@@ -270,6 +282,7 @@ static bool txrx(const char *buffer, const char *txtype, ACK_TYPE *pat)
       displayText("fail");
       fatal(BALLOON_ERR_IRIDIUM_INIT);
     }
+    delay(2000); // needed??
   }
   
   /* New */

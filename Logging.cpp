@@ -76,7 +76,7 @@ void processLogs()
       "<LOG time=\"%lu\" batt=\"%.2f\" T-int=\"%.2f\" T-ext=\"%.2f\" G-fix=\"%s\" G-loc=\"%.6f,%.6f\" G-alt=\"%ld\" "
       "G-time=\"%04d-%02d-%02d %02d:%02d:%02d\" G-chk-fail=\"%lu\" I-xmit=\"%ld\" I-fail=\"%ld\" "
       "I-msg1=\"%s\" G-sats=\"%d\" G-age=\"%ld\" I-age=\"%ld\" I-msg2=\"%s\" G-speed=\"%.2f\" G-course=\"%03d\" "
-      "B-ground=\"%ld\" B-maxalt=\"%ld\" B-inflight=\"%s\" B-descend=\"%s\" B-horiz=\"%.2f\" B-vert=\"%lu\" />\r\n",
+      "B-ground=\"%ld\" B-maxalt=\"%ld\" B-state=\"%s\" B-descend=\"%s\" B-horiz=\"%.2f\" B-vert=\"%lu\" />\r\n",
       now,
       binf.batteryVoltage,
       tinf.temperature[0],
@@ -103,7 +103,7 @@ void processLogs()
       (int)ginf.course,
       balinf.groundAltitude,
       balinf.maxAltitude,
-      balinf.inFlight ? "true" : "false",
+      balinf.flightState == BalloonInfo::INFLIGHT ? "flight" : balinf.flightState == BalloonInfo::LANDED ? "landed" : "ground",
       balinf.isDescending ? "true" : "false",
       balinf.lateralTravel,
       balinf.verticalTravel);

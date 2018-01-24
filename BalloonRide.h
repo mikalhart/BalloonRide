@@ -95,7 +95,7 @@ struct IridiumInfo
   uint16_t FLIGHT_INTERVAL = DEFAULT_FLIGHT_INTERVAL;
   uint16_t POST_LANDING_INTERVAL = DEFAULT_POST_LANDING_INTERVAL;
   uint16_t SECONDARY_INTERVAL = DEFAULT_SECONDARY_INTERVAL;
-  
+
   // Primary messages (location, altitude, battery, internal temperature)
   unsigned long xmitTime1;   // system time of last transmission
   double lat, lng;           // location at last transmission
@@ -116,7 +116,9 @@ struct IridiumInfo
 
 struct BalloonInfo
 {
-  bool inFlight;                 // true if balloon is in flight
+  enum {ONGROUND=0, INFLIGHT, LANDED};
+  int flightState = ONGROUND;    // ONGROUND, INFLIGHT, or LANDED
+  bool hasEverFlown = false;     // true if flightState has ever been INFLIGHT
   bool isDescending;             // true if balloon descending
   double lateralTravel;          // meters traveled since last transmit
   unsigned long verticalTravel;  // meters traveled vertically since last transmit
