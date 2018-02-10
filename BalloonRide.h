@@ -14,7 +14,7 @@ static const unsigned long rockBLOCKBaud = 19200UL;
 static const unsigned long consoleBaud = 115200UL;
 static const int THERMAL_PROBES = 2;
 #define PROGRAMNAME "BalloonRide"
-#define VERSION "6.23"
+#define VERSION "6.24"
 #define COPYRIGHT "Copyright (C) 2015-8 International Circumnavigating Balloon Consortium"
 #define SMALLCOPYRIGHT "(C) 2015-8 ICBC"
 static const double INVALID_VOLTAGE = -1000.0;
@@ -85,8 +85,8 @@ struct GPSInfo
 struct IridiumInfo
 {
   // Default cadences for transmission of primary and secondary messages
-  static const uint16_t DEFAULT_GROUND_INTERVAL = 3;        // primary message every 3 minutes while on ground
-  static const uint16_t DEFAULT_FLIGHT_INTERVAL = 3;        // primary message every 3 minutes while in flight
+  static const uint16_t DEFAULT_GROUND_INTERVAL = /* 3 */ 30;       // primary message every 3 minutes while on ground
+  static const uint16_t DEFAULT_FLIGHT_INTERVAL = 5;        // primary message every 5 minutes while in flight
   static const uint16_t DEFAULT_POST_LANDING_INTERVAL = 15; // primary message every 15 minutes after landing
   static const uint16_t DEFAULT_SECONDARY_INTERVAL = 0;     // never send secondary messages by default
 
@@ -193,6 +193,7 @@ extern void setSecondaryInterval(uint16_t interval);
 extern void setPostLandingInterval(uint16_t interval);
 extern void requestPrimaryInfo();
 extern void requestSecondaryInfo();
+extern bool Code3();
 
 /* LED */
 extern void startLED();
@@ -207,6 +208,7 @@ extern void log(FlashString fmt, ...);
 extern void log(char c);
 extern void iridiumLog(char c);
 extern void showLog(LOGTYPE whichLog);
+extern bool SDFail();
 
 /* Thermo */
 extern void startThermalProbes();

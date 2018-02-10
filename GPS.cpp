@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <TinyGPS++.h>  // NMEA parsing: http://arduiniana.org
 #include "BalloonRide.h"
-#include <time.h> // for struct tm
 /*
  * Handle the Adafruit Ultimate GPS module attached to the interior
  */

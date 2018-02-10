@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <SdFat.h>      // FAT filesystem for SD cards: https://github.com/greiman?tab=repositories
+#include <time.h>
 #include "BalloonRide.h"
 
 /*
@@ -9,6 +10,8 @@
 // File objects
 static SdFatSdio sd;
 static File RunLog, TelemetryLog/*, IridiumLog*/;
+static bool sdfail = false;
+bool SDFail() { return sdfail; }
 
 void startLogs()
 {
@@ -19,36 +22,50 @@ void startLogs()
   {
     consoleText("SD Init failed.\r\n");
     displayText("fail.\r\n");
-    fatal(BALLOON_ERR_SD_INIT);
+    // fatal(BALLOON_ERR_SD_INIT);
+    sdfail = true;
+    return;
   }
   
+  char dirname[32];
+#if false
   // First, find an unused directory name
-  char dirname[20];
   for (uint32_t i=0; ; ++i)
   {
     sprintf(dirname, "/%08lu", i);
     if (!sd.exists(dirname))
       break;
   }
-
-  consoleText(F("Directory created: "));
-  consoleText(dirname);
-  consoleText("\r\n");
+#else
+  time_t now = Teensy3Clock.get();
+  struct tm *tnow = localtime(&now);
+  sprintf(dirname, "%d-%02d-%02d-%02d-%02d-%02d", 1900 + tnow->tm_year, 1 + tnow->tm_mon, tnow->tm_mday, tnow->tm_hour, tnow->tm_min, tnow->tm_sec);
+#endif
 
   if (!sd.mkdir(dirname) || !sd.chdir(dirname, true))
   {
     consoleText("Couldn't create directory.\r\n");
     displayText("fail2.\r\n");
-    fatal(BALLOON_ERR_SD_INIT);
+    displayText(dirname);
+    delay(2000);
+    // fatal(BALLOON_ERR_SD_INIT);
+    sdfail = true;
+    return;
   }
   
+  consoleText(F("Directory created: "));
+  consoleText(dirname);
+  consoleText("\r\n");
+
   if (!RunLog.open("run.log", O_CREAT | O_TRUNC | O_WRITE) ||
       !TelemetryLog.open("telemetry.log", O_CREAT | O_TRUNC | O_WRITE) /*||
       !IridiumLog.open("iridium.log", O_CREAT | O_TRUNC | O_WRITE)*/)
   {
     consoleText("Couldn't create log files.\r\n");
     displayText("fail3.\r\n");
-    fatal(BALLOON_ERR_LOG_FILE);
+    // fatal(BALLOON_ERR_LOG_FILE);
+    sdfail = true;
+    return;
   }
 
   consoleText("done.\r\n");

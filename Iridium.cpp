@@ -9,12 +9,14 @@
 */
 
 static HardwareSerial &iridium = IridiumSerial;
-static IridiumSBD modem(iridium, rockBLOCKSleepPin, rockBLOCKRingPin);
+// static IridiumSBD modem(iridium, rockBLOCKSleepPin, rockBLOCKRingPin); // We'll ignore RING for now
+static IridiumSBD modem(iridium, rockBLOCKSleepPin, -1);
 static struct IridiumInfo info;
 static struct BalloonInfo bal_info;
 
 static bool requestPrimary = false;
 static bool requestSecondary = false;
+static int  latestTxRxCode = ISBD_SUCCESS;
 
 // Internal functions
 static bool decideToTransmitPrimary();
@@ -84,7 +86,7 @@ void processIridium()
   }
 
   // Should we transmit a secondary info packet?
-  else if (decideToTransmitSecondary())
+  if (decideToTransmitSecondary())
   {
     // external temp, ballast, satellites, course, speed
     snprintf(info.transmitBuffer2, sizeof(info.transmitBuffer2),
@@ -288,9 +290,9 @@ static bool txrx(const char *buffer, const char *txtype, ACK_TYPE *pat)
   /* New */
   
   info.isTransmitting = true;
-  int code = modem.sendReceiveSBDText(buffer, reinterpret_cast<uint8_t *>(info.receiveBuffer), rxBufSize);
+  latestTxRxCode = modem.sendReceiveSBDText(buffer, reinterpret_cast<uint8_t *>(info.receiveBuffer), rxBufSize);
   info.isTransmitting = false;
-  if (code == ISBD_SUCCESS)
+  if (latestTxRxCode == ISBD_SUCCESS)
   {
     info.count++;
     log(F("TX succeeded.\r\n"));
@@ -310,7 +312,7 @@ static bool txrx(const char *buffer, const char *txtype, ACK_TYPE *pat)
     {
       log("modem.sleep fail: %d\r\n", err);
       displayText("fail");
-      fatal(BALLOON_ERR_IRIDIUM_INIT);
+      // fatal(BALLOON_ERR_IRIDIUM_INIT);
     }
     
     /* New */
@@ -319,7 +321,7 @@ static bool txrx(const char *buffer, const char *txtype, ACK_TYPE *pat)
   else
   {
     info.failcount++;
-    log(F("TX failed: %d\r\n"), code);
+    log(F("TX failed: %d\r\n"), latestTxRxCode);
     return false;
   }
 }
@@ -357,4 +359,10 @@ void requestSecondaryInfo()
 {
   requestSecondary = true;
 }
+
+bool Code3()
+{
+  return latestTxRxCode == 3;
+}
+
 

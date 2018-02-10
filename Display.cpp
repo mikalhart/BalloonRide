@@ -130,12 +130,13 @@ void startDisplay()
 void processDisplay()
 {
   static unsigned long lastDisplayTime = 0UL;
-  unsigned long now = millis() / 1000;
 
-  // Display only once per second
-  if (now != lastDisplayTime)
+  // Display max twice per second
+  if (millis() - lastDisplayTime >= 500)
   {
-    lastDisplayTime = now;
+    unsigned long now = millis() / 1000;
+    lastDisplayTime = millis();
+    bool flash = now % 2 == 1;
     display.clearDisplay();
 
     // Mission time
@@ -152,7 +153,15 @@ void processDisplay()
     display.print(" ");
 
     // "Transmitting"
-    display.println(getIridiumInfo().isTransmitting && now % 2 == 0 ? "Transmitting" : "");
+    // Upper right region
+    display.print(flash && getIridiumInfo().isTransmitting ? "TR " : "   ");
+    display.print(rockBLOCKRingPin == -1 ? "-- " : !getIridiumInfo().isTransmitting ? "SL " : digitalRead(rockBLOCKRingPin) == HIGH ? "NR " : "RI ");
+    
+    // Display certain error conditions
+    if (Code3())
+      display.println(flash ? "CODE3" : "");
+    else if (SDFail())
+      display.println(flash ? "SDFAIL" : "");
 
     // Time since fix
     display.print("Fix: ");
@@ -161,7 +170,7 @@ void processDisplay()
     {
       display.print("None. ");
     }
-    else if (age > 15 && now % 2 == 1) // flash if no GPS in >15 seconds
+    else if (age > 15 && flash) // flash if no GPS in >15 seconds
     {
       display.print("      ");
     }
@@ -186,7 +195,7 @@ void processDisplay()
     {
       display.println("None.");
     }
-    else if (age > 15 * 60 && now % 2 == 1) // flash if no Xmit in >15 minutes
+    else if (age > 15 * 60 && flash) // flash if no Xmit in >15 minutes
     {
       display.println("     ");    
     }

@@ -25,6 +25,7 @@ void blink(int count)
   }
 }
 
+#if false
 void processLED()
 {
   // transmitting? 50 on 50 off
@@ -42,4 +43,27 @@ void processLED()
   digitalWrite(ledPin, now % (on + off) < on ? HIGH : LOW);  
 }
 
+#else
+void processLED()
+{
+  // transmitting? blinking 50/50
+  // no fix? off
+  // fix? on
+  bool on;
 
+  if (getIridiumInfo().isTransmitting)
+  {
+    on = (millis() / 1000) % 2 == 1;
+  }
+  else if (getGPSInfo().fixAcquired)
+  {
+    on = true;
+  }
+  else
+  {
+    on = false;
+  }
+  
+  digitalWrite(ledPin, on ? HIGH : LOW);
+}
+#endif
