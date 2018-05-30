@@ -10,6 +10,7 @@
 // File objects
 static SdFatSdio sd;
 static File RunLog, TelemetryLog/*, IridiumLog*/;
+
 static bool sdfail = false;
 bool SDFail() { return sdfail; }
 
@@ -39,7 +40,12 @@ void startLogs()
 #else
   time_t now = Teensy3Clock.get();
   struct tm *tnow = localtime(&now);
-  sprintf(dirname, "%d-%02d-%02d-%02d-%02d-%02d", 1900 + tnow->tm_year, 1 + tnow->tm_mon, tnow->tm_mday, tnow->tm_hour, tnow->tm_min, tnow->tm_sec);
+  for (uint32_t i=0; ; ++i)
+  {
+    sprintf(dirname, "%d-%02d-%02d-%02d-%02d-%02d-%04lu", 1900 + tnow->tm_year, 1 + tnow->tm_mon, tnow->tm_mday, tnow->tm_hour, tnow->tm_min, tnow->tm_sec, i);
+    if (!sd.exists(dirname))
+      break;
+  }
 #endif
 
   if (!sd.mkdir(dirname) || !sd.chdir(dirname, true))
@@ -75,7 +81,7 @@ void startLogs()
 void processLogs()
 {
   static unsigned long lastLogTime = 0UL;
-  unsigned long now = millis() / 1000;
+  unsigned long now = getMissionTime();
 
   // Do logging stuff once per second
   if (now != lastLogTime)
@@ -114,7 +120,7 @@ void processLogs()
       iinf.transmitBuffer1,
       ginf.satellites,
       ginf.age,
-      now - iinf.xmitTime1 / 1000,
+      now - iinf.xmitTime1,
       iinf.transmitBuffer2,
       ginf.speed,
       (int)ginf.course,

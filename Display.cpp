@@ -100,8 +100,9 @@ static const unsigned char SundialLogo[] = {
 void startDisplay()
 {
   consoleText(F("Starting display..."));
-  display.begin(SSD1306_SWITCHCAPVCC, I2C_ADDR);  // initialize with the I2C addr 0x3D (for the 128x64)
   started = true;
+
+  display.begin(SSD1306_SWITCHCAPVCC, I2C_ADDR);  // initialize with the I2C addr 0x3D (for the 128x64)
   display.clearDisplay();
 #if ADAFRUIT128x96
   display.drawBitmap(0, 0, SundialLogo, 128, ROWS, WHITE);
@@ -129,20 +130,19 @@ void startDisplay()
 
 void processDisplay()
 {
-  static unsigned long lastDisplayTime = 0UL;
+  static time_t lastDisplayTime = 0;
 
-  // Display max twice per second
-  if (millis() - lastDisplayTime >= 500)
+  // Display max once per second
+  if (getMissionTime() > lastDisplayTime)
   {
-    unsigned long now = millis() / 1000;
-    lastDisplayTime = millis();
-    bool flash = now % 2 == 1;
+    lastDisplayTime = getMissionTime();
+    bool flash = lastDisplayTime % 2 == 1;
     display.clearDisplay();
 
     // Mission time
-    unsigned hour = (unsigned)(now / 3600);
-    unsigned minute = (unsigned)((now - 3600UL * hour) / 60);
-    unsigned second = (unsigned)(now % 60);
+    unsigned hour = (unsigned)(lastDisplayTime / 3600);
+    unsigned minute = (unsigned)((lastDisplayTime - 3600UL * hour) / 60);
+    unsigned second = (unsigned)(lastDisplayTime % 60);
     display.setCursor(0, 0);
     display.print(hour < 10 ? "0" : "");
     display.print(hour);
@@ -162,6 +162,8 @@ void processDisplay()
       display.println(flash ? "CODE3" : "");
     else if (SDFail())
       display.println(flash ? "SDFAIL" : "");
+    else
+      display.println();
 
     // Time since fix
     display.print("Fix: ");
@@ -189,9 +191,9 @@ void processDisplay()
 
     // Time since last successful transmission
     display.print("X: ");
-    age = (millis() - getIridiumInfo().xmitTime1) / 1000;
+    age = getMissionTime() - getIridiumInfo().xmitTime1;
     
-    if (getIridiumInfo().xmitTime1 == 0UL)
+    if (getIridiumInfo().xmitTime1 == 0)
     {
       display.println("None.");
     }

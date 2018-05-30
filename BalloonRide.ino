@@ -7,10 +7,8 @@
 #include <Wire.h>       // I2C bus management for OLED Display
 #include <Adafruit_GFX.h> // Adafruit base graphics library
 #include <Adafruit_SSD1306.h> // Adafruit SSD1306 library
-#include <Snooze.h>
-//#include <TimeLib.h>
-//#include <time.h>
 #include "BalloonRide.h"
+//#include <Snooze.h>
 
 // State variables
 static bool IridiumReentrant = false;
@@ -18,6 +16,9 @@ static bool setupComplete = false;
 
 void setup()
 {
+  // Set up system and mission timers
+  startClocks();
+
   // Set up the status LED
   startLED();
   
@@ -51,6 +52,9 @@ void setup()
 
   // Andrew
   AndrewsStartup();
+
+  // Sleep
+  startSleep();
   
   // All done with initialization!
   setupComplete = true;
@@ -67,7 +71,8 @@ void loop()
   processLED();
   processDisplay();
   processConsole();
-  RunScheduler();
+  processScheduler();
+  //processSleep();
 }
 
 // Recursively call loop during lengthy Iridium operations!

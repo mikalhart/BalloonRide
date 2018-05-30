@@ -6,14 +6,14 @@
  */
 
 int SHUTTER_CONTROL = 30;
-int MODE_CONTROL = 31;
-int PWR_CONTROL = 32;
+int MODE_CONTROL = 33; // orig: 31;
+int PWR_CONTROL = 34; // orig: 32;
 boolean CameraPWRonORoff = false;
+
 
 // Declare functions used later in the file
 void PressPWR();
 void PressSHUTTER();
-
 
 // This is called once at startup
 void AndrewsStartup()
@@ -23,6 +23,11 @@ void AndrewsStartup()
   pinMode(SHUTTER_CONTROL, INPUT);
   pinMode(MODE_CONTROL, OUTPUT);
   pinMode(PWR_CONTROL, INPUT);
+
+  // optional way to set initial settings
+
+  char initialCmd[] = "C0,4;C1,15;C2,60;P200";
+  executeRemoteCommand(initialCmd);
 }
 
 void BurstStart()

@@ -53,7 +53,7 @@ void processIridium()
   const BatteryInfo &binf = getBatteryInfo();
   const ThermalInfo &tinf = getThermalInfo();
   ACK_TYPE ackType = NONE;
-  unsigned long now = millis();
+  time_t now = getMissionTime();
 
   // Should we transmit a primary info packet?
   if (decideToTransmitPrimary())
@@ -135,8 +135,8 @@ void ISBDDiagsCallback(IridiumSBD *device, char c)
 // returns true if it's time to transmit a primary info packet
 static bool decideToTransmitPrimary()
 {
-  unsigned long now = millis();
-  unsigned long secsSinceLastXmit = (now - info.xmitTime1) / 1000;
+  time_t now = getMissionTime();
+  time_t secsSinceLastXmit = now - info.xmitTime1;
 
   bal_info.isDescending = false;
 
@@ -145,7 +145,7 @@ static bool decideToTransmitPrimary()
   const GPSInfo &ginf = getGPSInfo();
 
   // Don't transmit in the first 5 minutes unless we have a fix
-  if (now < 5UL * 60UL * 1000UL && !ginf.fixAcquired)
+  if (now < 5 * 60 && !ginf.fixAcquired)
     return false;
 
   // If we have a fix let's calculate a few useful things.
@@ -198,14 +198,14 @@ static bool decideToTransmitPrimary()
   }
 
   // 3. If the balloon is still on the ground and it's been more than GROUND_INTERVAL since our last transmission...
-  else if (bal_info.maxAltitude < bal_info.groundAltitude + 1000L && secsSinceLastXmit >= info.GROUND_INTERVAL * 60UL)
+  else if (bal_info.maxAltitude < bal_info.groundAltitude + 1000L && secsSinceLastXmit >= info.GROUND_INTERVAL * 60L)
   {
     log(F("Still close to ground: transmitting on %d-minute cadence.\r\n"), info.GROUND_INTERVAL);
     mustTransmit = true;
   }
 
   // 4. If the balloon is in flight and it's been more than FLIGHT_INTERVAL...
-  else if (bal_info.flightState == BalloonInfo::INFLIGHT && secsSinceLastXmit >= info.FLIGHT_INTERVAL * 60UL) // time in seconds
+  else if (bal_info.flightState == BalloonInfo::INFLIGHT && secsSinceLastXmit >= info.FLIGHT_INTERVAL * 60L) // time in seconds
   {
     log(F("Balloon in flight: transmitting on %d-minute cadence.\r\n"), info.FLIGHT_INTERVAL);
     mustTransmit = true;
@@ -221,7 +221,7 @@ static bool decideToTransmitPrimary()
   }
 
   // 5. If already landed and it's been a long since the last transmission, transmit even though the balloon isn't moving.
-  else if (bal_info.flightState == BalloonInfo::LANDED && secsSinceLastXmit >= info.POST_LANDING_INTERVAL * 60UL)
+  else if (bal_info.flightState == BalloonInfo::LANDED && secsSinceLastXmit >= info.POST_LANDING_INTERVAL * 60L)
   {
     log(F("It's been %d minutes: time to transmit.\r\n"), info.POST_LANDING_INTERVAL);
     mustTransmit = true;
@@ -243,8 +243,8 @@ static bool decideToTransmitPrimary()
 
 static bool decideToTransmitSecondary()
 {
-  unsigned long now = millis();
-  unsigned long secsSinceLastXmit = (now - info.xmitTime2) / 1000;
+  time_t now = getMissionTime();
+  time_t secsSinceLastXmit = now - info.xmitTime2;
   bool mustTransmit = false;
 
   // 1. If requested by client...
@@ -255,7 +255,7 @@ static bool decideToTransmitSecondary()
   }
 
   // 2. If it's been a while (0 = never transmit)
-  if (info.SECONDARY_INTERVAL != 0 && secsSinceLastXmit >= info.SECONDARY_INTERVAL * 60UL)
+  if (info.SECONDARY_INTERVAL != 0 && secsSinceLastXmit >= info.SECONDARY_INTERVAL * 60L)
   {
     log(F("It's been %d minutes since last secondary: time to transmit.\r\n"), info.SECONDARY_INTERVAL);
     mustTransmit = true;

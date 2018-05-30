@@ -14,10 +14,10 @@ void startBatteryMonitor()
 
 void processBatteryData()
 {
-  static unsigned long lastTimeActive = 0UL; // only really do this once per second
-  if (lastTimeActive == 0UL || millis() - lastTimeActive >= 1000)
+  static time_t lastTimeActive = 0; // only really do this once per second
+  if (lastTimeActive == 0 || getMissionTime() != lastTimeActive)
   {
-    // info.batteryVoltage = 5.0 * analogRead(mainBatteryVoltagePin) / 1024.0;
+    lastTimeActive = getMissionTime();
     info.batteryVoltage = 2.0 * 3.3 * analogRead(mainBatteryVoltagePin) / 1024.0;
     info.gpsBackupBatteryVoltage = 5.0 * analogRead(gpsBackupBatteryVoltagePin) / 1024.0;
   }

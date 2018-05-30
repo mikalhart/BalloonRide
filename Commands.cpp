@@ -35,7 +35,7 @@ void showCommands()
 enum { STARTBURST, ENDBURST, TAKEPICTURE, STARTVIDEO, ENDVIDEO, MACRO };
 struct SCHEDULEINFO
 {
-  unsigned long timestamp;
+  time_t timestamp;
   int command;
   unsigned long arg;
 };
@@ -44,15 +44,15 @@ struct SCHEDULEINFO
 struct SCHEDULEINFO events[TABLESIZE];
 static const unsigned long ULONG_MAX = 0xFFFFFFFF;
 static const unsigned long LONG_MAX = 0x7FFFFFFF;
-static unsigned long target_altitude = ULONG_MAX;
+static long target_altitude = LONG_MAX;
 
-void RunScheduler()
+void processScheduler()
 {
-  unsigned long now = millis();
+  time_t now = getMissionTime();
   for (int i=0; i<TABLESIZE; ++i)
   {
     // Event in the past?
-    if (events[i].timestamp != 0 && now - events[i].timestamp < LONG_MAX)
+    if (events[i].timestamp != 0 && now >= events[i].timestamp)
     {
       switch(events[i].command)
       {
@@ -70,15 +70,15 @@ void RunScheduler()
           Macro(events[i].arg); break;
       }
 
-      // Recurring pictures
+      // Recurring pictures continue; everything else ceases
       if (events[i].command == TAKEPICTURE && events[i].arg != ULONG_MAX)
-        events[i].timestamp += 1000UL * events[i].arg;
+        events[i].timestamp += (int)events[i].arg;
       else
         events[i].timestamp = 0;
     }
   }
   
-  if (target_altitude != ULONG_MAX)
+  if (target_altitude != LONG_MAX)
   {
     const GPSInfo &gpsinf = getGPSInfo();
     if (gpsinf.fixAcquired)
@@ -86,7 +86,7 @@ void RunScheduler()
   }
 }
 
-static void AddToScheduler(unsigned long timestamp, int command, unsigned long arg)
+static void AddToScheduler(time_t timestamp, int command, unsigned long arg)
 {
   int found = -1;
   for (int i=0; i<TABLESIZE; ++i)
@@ -235,25 +235,22 @@ bool executeRemoteCommand(char *cmd)
       arg2 = (unsigned)strtoul(tok, &tok, 10);
     }
 
-    unsigned long exectime = millis();
-
-    exectime += 60000UL * defer;
-
+    time_t exectime = getMissionTime() + 60 * defer;
     log("Processing %c command\r\n", command);
     log("Defer = %lu\r\n", defer);
     log("Arg1 = %lu\r\n", arg1);
     log("Arg2 = %lu\r\n", arg2);
-    log("Time = %lu\r\n", millis());
+    log("Time = %lu\r\n", getMissionTime());
     log("ExecTime = %ld\r\n", exectime);
     
     switch(command)
     {
       case 'B':
         AddToScheduler(exectime, STARTBURST, 0);
-        AddToScheduler(exectime + 1000UL * (arg1 == ULONG_MAX ? 10 : arg1), ENDBURST, 0);
+        AddToScheduler(exectime + (arg1 == ULONG_MAX ? 10 : (unsigned)arg1), ENDBURST, 0);
         break;
       case 'A':
-        target_altitude = arg1 == ULONG_MAX ? ULONG_MAX : arg1;
+        target_altitude = arg1 == ULONG_MAX ? LONG_MAX : (long)arg1;
         break;
       case 'M':
         AddToScheduler(exectime, MACRO, arg1);
@@ -273,7 +270,7 @@ bool executeRemoteCommand(char *cmd)
         {
           AddToScheduler(exectime, STARTVIDEO, 0);
           if (arg1 != ULONG_MAX) // no parameter means record forever
-            AddToScheduler(exectime + 60000UL * arg1, ENDVIDEO, 0);
+            AddToScheduler(exectime + 60 * arg1, ENDVIDEO, 0);
         }
         break;
       case 'I':

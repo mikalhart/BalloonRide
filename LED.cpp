@@ -53,7 +53,7 @@ void processLED()
 
   if (getIridiumInfo().isTransmitting)
   {
-    on = (millis() / 1000) % 2 == 1;
+    on = getMissionTime() % 2 == 1;
   }
   else if (getGPSInfo().fixAcquired)
   {

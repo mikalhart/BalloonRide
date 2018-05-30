@@ -9,12 +9,12 @@ static HardwareSerial &gps = GPSSerial;
 static TinyGPSPlus tinyGps;
 static struct GPSInfo info;
 
-static void gpsOn()
+void gpsOn()
 {
   pinMode(gpsPowerPin, INPUT);
 }
 
-static void gpsOff()
+void gpsOff()
 {
   pinMode(gpsPowerPin, OUTPUT);
   digitalWrite(gpsPowerPin, LOW);
@@ -33,7 +33,7 @@ void startGPS()
   // If no GPS characters detected in 5 seconds, this is a fatal fail
   int charsSeen = 0;
   bool newlineSeen = false;
-  for (unsigned long now = millis(); charsSeen < 100 && millis() - now < 5 * 1000UL;)
+  for (time_t now = getMissionTime(); charsSeen < 100 && getMissionTime() - now < 5;)
   {
     if (gps.available() > 0)
     {

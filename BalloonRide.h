@@ -5,7 +5,6 @@
 #error "This program requires Teensy 3.5"
 #endif
 
-typedef usb_serial_class ConsoleType;
 typedef const __FlashStringHelper *FlashString;
 
 // Constants
@@ -29,6 +28,7 @@ typedef enum { LOG_IRIDIUM = 1, LOG_TELEMETRY = 2, LOG_RUNLOG = 4 } LOGTYPE;
 #define OLD false
 
 #if OLD
+typedef usb_serial_class ConsoleType;
 #define ConsoleSerial Serial 
 #define GPSSerial Serial2
 #define IridiumSerial Serial3
@@ -43,7 +43,8 @@ static const int gpsPowerPin = -1;
 static const int ds18B20pin0 = 11;
 static const int ds18B20pin1 = 12;
 #else
-#define ConsoleSerial Serial
+typedef HardwareSerial ConsoleType;
+#define ConsoleSerial Serial4
 #define GPSSerial Serial3
 #define IridiumSerial Serial2
 static const int ledPin = 13;
@@ -97,13 +98,13 @@ struct IridiumInfo
   uint16_t SECONDARY_INTERVAL = DEFAULT_SECONDARY_INTERVAL;
 
   // Primary messages (location, altitude, battery, internal temperature)
-  unsigned long xmitTime1;   // system time of last transmission
+  time_t xmitTime1;   // system time of last transmission
   double lat, lng;           // location at last transmission
   long alt;                  // altitude at last transmission
   char transmitBuffer1[128]; // most recent primary transmit string
 
   // Secondary messages (ballast, speed, course, satellites, external temperature)
-  unsigned long xmitTime2;   // system time of last transmission
+  time_t xmitTime2;   // system time of last transmission
   char transmitBuffer2[128]; // most recent secondary transmit string
 
   // RX and general
@@ -158,7 +159,7 @@ extern const BatteryInfo &getBatteryInfo();
 extern bool executeConsoleCommand(char *cmd);
 extern bool executeRemoteCommand(char *cmd);
 extern void showCommands();
-extern void RunScheduler();
+extern void processScheduler();
 
 /* Console */
 extern void startConsole();
@@ -178,6 +179,8 @@ extern void displayText(int n);
 extern void displayText(FlashString fs);
 
 /* GPS */
+extern void gpsOff();
+extern void gpsOn();
 extern void startGPS();
 extern void processGPS();
 extern const GPSInfo &getGPSInfo();
@@ -209,6 +212,12 @@ extern void log(char c);
 extern void iridiumLog(char c);
 extern void showLog(LOGTYPE whichLog);
 extern bool SDFail();
+
+/* Sleep */
+extern void startSleep();
+extern void startClocks();
+extern void processSleep();
+extern time_t getMissionTime();
 
 /* Thermo */
 extern void startThermalProbes();
