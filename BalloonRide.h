@@ -13,7 +13,7 @@ static const unsigned long rockBLOCKBaud = 19200UL;
 static const unsigned long consoleBaud = 115200UL;
 static const int THERMAL_PROBES = 2;
 #define PROGRAMNAME "BalloonRide"
-#define VERSION "6.25"
+#define VERSION "6.26"
 #define COPYRIGHT "Copyright (C) 2015-8 International Circumnavigating Balloon Consortium"
 #define SMALLCOPYRIGHT "(C) 2015-8 ICBC"
 static const double INVALID_VOLTAGE = -1000.0;
