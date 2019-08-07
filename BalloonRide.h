@@ -1,6 +1,6 @@
 #pragma once
 
-/* Version 6.0 is designed for the Teensy 3.5 */
+/* Version 6.0/7.0 is designed for the Teensy 3.5 */
 #if !defined(__MK64FX512__)
 #error "This program requires Teensy 3.5"
 #endif
@@ -13,9 +13,9 @@ static const unsigned long rockBLOCKBaud = 19200UL;
 static const unsigned long consoleBaud = 115200UL;
 static const int THERMAL_PROBES = 2;
 #define PROGRAMNAME "BalloonRide"
-#define VERSION "6.26"
-#define COPYRIGHT "Copyright (C) 2015-8 International Circumnavigating Balloon Consortium"
-#define SMALLCOPYRIGHT "(C) 2015-8 ICBC"
+#define VERSION "7.00"
+#define COPYRIGHT "Copyright (C) 2015-9 International Circumnavigating Balloon Consortium"
+#define SMALLCOPYRIGHT "(C) 2015-9 ICBC"
 static const double INVALID_VOLTAGE = -1000.0;
 static const double INVALID_TEMPERATURE = -1000.0;
 static const long INVALID_ALTITUDE = -20000L;
@@ -44,7 +44,7 @@ static const int ds18B20pin0 = 11;
 static const int ds18B20pin1 = 12;
 #else
 typedef HardwareSerial ConsoleType;
-#define ConsoleSerial Serial4
+#define ConsoleSerial Serial5
 #define GPSSerial Serial3
 #define IridiumSerial Serial2
 static const int ledPin = 13;
@@ -61,6 +61,7 @@ static const int ds18B20pin1 = 30;
 // Pin assignments
 // GPS connected to Serial2 (pins 9 and 10) (PCB is Serial3 -- pins 7 and 8)
 // RockBLOCK connected to Serial3 (pins 7 and 8) (PCB is Serial2 -- pins 9 and 10)
+// FTDI connected (via external board) to Serial5 (pins 33 and 34)
 
 // Error "blink" codes
 static const int BALLOON_ERR_IRIDIUM_INIT = 2;
@@ -119,7 +120,6 @@ struct BalloonInfo
 {
   enum {ONGROUND=0, INFLIGHT, LANDED};
   int flightState = ONGROUND;    // ONGROUND, INFLIGHT, or LANDED
-  bool hasEverFlown = false;     // true if flightState has ever been INFLIGHT
   bool isDescending;             // true if balloon descending
   double lateralTravel;          // meters traveled since last transmit
   unsigned long verticalTravel;  // meters traveled vertically since last transmit

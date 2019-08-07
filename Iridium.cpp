@@ -169,10 +169,9 @@ static bool decideToTransmitPrimary()
       if (bal_info.lateralTravel > 1000.0 || bal_info.verticalTravel > 100UL)
       {
         bal_info.flightState = BalloonInfo::INFLIGHT;
-        bal_info.hasEverFlown = true;
       }
-      // if it hasn't, it's either still on the ground or landed
-      else if (secsSinceLastXmit > 10 && bal_info.hasEverFlown)
+      // if it hasn't moved in 100 seconds and it has been INFLIGHT, then it must have landed
+      else if (bal_info.flightState == BalloonInfo::INFLIGHT && secsSinceLastXmit > 100)
       {
         bal_info.flightState = BalloonInfo::LANDED;
       }
