@@ -87,7 +87,7 @@ struct GPSInfo
 struct IridiumInfo
 {
   // Default cadences for transmission of primary and secondary messages
-  static const uint16_t DEFAULT_GROUND_INTERVAL = /* 3 */ 30;       // primary message every 3 minutes while on ground
+  static const uint16_t DEFAULT_GROUND_INTERVAL = 3;        // primary message every 3 minutes while on ground
   static const uint16_t DEFAULT_FLIGHT_INTERVAL = 5;        // primary message every 5 minutes while in flight
   static const uint16_t DEFAULT_POST_LANDING_INTERVAL = 15; // primary message every 15 minutes after landing
   static const uint16_t DEFAULT_SECONDARY_INTERVAL = 0;     // never send secondary messages by default
